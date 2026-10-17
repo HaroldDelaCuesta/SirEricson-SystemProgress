@@ -1,0 +1,46 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Report #{{ r.id }}{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Report #{{ r.id }}</h1><a class="btn" href="{{ url_for('sub_reports') }}">All reports</a></header>
+{% if r.resident_response == 'reopened' and r.status != 'completed' %}<div class="banner bad"><b>Reopened by the resident:</b> {{ r.reopen_note }}</div>{% endif %}
+<div class="two-col">
+  <section class="panel">
+    <h2>Details</h2><br>
+    <dl class="kv">
+      <dt>Resident</dt><dd>{{ r.resident }} · {{ r.address }}{% if r.phone %} · {{ r.phone }}{% endif %}</dd>
+      <dt>Category</dt><dd>{{ r.category }}</dd>
+      <dt>Location</dt><dd>{{ r.location or '—' }}</dd>
+      <dt>Status</dt><dd>{{ tag(r.status) }} {{ tag(r.priority) }}{% if r.status == 'completed' %} {{ tag('active', 'verified') if r.verified else tag('pending', 'not verified yet') }}{% endif %}</dd>
+      <dt>Assigned to</dt><dd>{{ r.assignee or 'Nobody yet' }}</dd>
+      <dt>Due</dt><dd>{{ due(r.due_date, r.overdue) }}</dd>
+      <dt>Filed</dt><dd>{{ r.created_at.strftime('%b %d, %Y %H:%M') }}</dd>
+      {% if r.completed_at %}<dt>Completed</dt><dd>{{ r.completed_at.strftime('%b %d, %Y %H:%M') }}</dd>{% endif %}
+      {% if r.rating %}<dt>Resident rating</dt><dd>{{ stars(r.rating) }}{% if r.feedback %} · {{ r.feedback }}{% endif %}</dd>{% endif %}
+      <dt>Description</dt><dd>{{ r.description }}</dd>
+      {% if r.work_notes %}<dt>Maintenance notes</dt><dd>{{ r.work_notes }}</dd>{% endif %}
+    </dl>
+    {% set rp = photos|selectattr('kind', 'equalto', 'report')|list %}{% set cp = photos|selectattr('kind', 'equalto', 'completion')|list %}
+    {% if rp %}<h3 class="mt">Photos from the resident</h3>{{ gallery(rp) }}{% endif %}
+    {% if cp %}<h3 class="mt">Photos of the finished repair</h3>{{ gallery(cp) }}{% endif %}
+    {% if r.status == 'completed' and not r.verified %}
+    <form method="post" action="{{ url_for('sub_verify', report_id=r.id) }}" class="mt">{{ csrf() }}<button class="btn btn-primary">Verify the repair</button></form>
+    {% endif %}
+  </section>
+  <section class="panel">
+    <h2>Assign</h2><br>
+    <form method="post" action="{{ url_for('sub_assign', report_id=r.id) }}" class="stack">
+      {{ csrf() }}
+      <label>Category<input type="text" name="category" value="{{ r.category }}"></label>
+      <div class="row2">
+        <label>Priority<select name="priority">{% for p in priorities %}<option value="{{ p }}" {{ 'selected' if r.priority == p }}>{{ p|capitalize }}</option>{% endfor %}</select></label>
+        <label>Due date<input type="date" name="due_date" value="{{ r.due_date.isoformat() if r.due_date }}"></label>
+      </div>
+      <label>Assign to<select name="assigned_to"><option value="">Unassigned</option>{% for s in staff %}<option value="{{ s.id }}" {{ 'selected' if r.assigned_to == s.id }}>{{ s.full_name }}</option>{% endfor %}</select></label>
+      <div><button class="btn btn-primary">Save</button></div>
+    </form>
+    <h2 class="mt">History</h2><br>
+    {{ timeline(history) }}
+  </section>
+</div>
+{% endblock %}

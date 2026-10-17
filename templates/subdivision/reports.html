@@ -1,0 +1,60 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Resident reports</h1><div class="actions">{{ pdf_button() }}</div></header>
+
+<div class="tabs">
+  <a class="{{ 'active' if not f.view }}" href="{{ url_for('sub_reports') }}">All</a>
+  <a class="{{ 'active' if f.view == 'unassigned' }}" href="{{ url_for('sub_reports', view='unassigned') }}">Not assigned</a>
+  <a class="{{ 'active' if f.view == 'overdue' }}" href="{{ url_for('sub_reports', view='overdue') }}">Overdue</a>
+  <a class="{{ 'active' if f.view == 'to_verify' }}" href="{{ url_for('sub_reports', view='to_verify') }}">To verify</a>
+  <a class="{{ 'active' if f.view == 'reopened' }}" href="{{ url_for('sub_reports', view='reopened') }}">Reopened</a>
+</div>
+
+{{ filters(f.q, 'Search description, resident, location or #',
+   [('status', 'Any status', [('pending','Pending'),('in_progress','In progress'),('completed','Completed')], f.status), ('priority', 'Any priority', [('urgent','Urgent'),('high','High'),('normal','Normal'),('low','Low')], f.priority), ('category', 'Any category', cats, f.category)],
+   True, f.d1, f.d2) }}
+
+<section class="panel">
+  {% if rows %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Report</th><th>Status</th><th>Categorize, prioritize, assign</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+      <tr>
+        <td><a href="{{ url_for('sub_report_detail', report_id=r.id) }}">{{ r.id }}</a></td>
+        <td>
+          <b>{{ r.resident }}</b> <span class="muted">{{ r.address }}</span><br>
+          {{ r.description[:160] }}{{ '…' if r.description|length > 160 }}<br>
+          <span class="muted">{{ r.location or 'No location given' }} · filed {{ r.created_at.strftime('%b %d, %Y') }}</span>
+          {% if r.resident_response == 'reopened' and r.status != 'completed' %}<br>{{ tag('reopened') }} <span class="muted">{{ r.reopen_note }}</span>{% endif %}
+        </td>
+        <td>
+          {{ tag(r.status) }}<br>{{ tag(r.priority) }}
+          {% if r.due_date %}<br><span class="muted">Due</span> {{ due(r.due_date, r.overdue) }}{% endif %}
+          {% if r.status == 'completed' %}<br>
+            {% if r.verified %}{{ tag('active', 'verified') }}{% else %}
+            <form method="post" action="{{ url_for('sub_verify', report_id=r.id) }}" class="mt">{{ csrf() }}<button class="btn btn-small btn-primary">Verify fix</button></form>{% endif %}
+            {% if r.rating %}<br>{{ stars(r.rating) }}{% endif %}
+          {% endif %}
+        </td>
+        <td>
+          <form method="post" action="{{ url_for('sub_assign', report_id=r.id) }}" class="inline-form">
+            {{ csrf() }}
+            <input type="text" name="category" value="{{ r.category }}" list="categories" aria-label="Category" placeholder="Category">
+            <select name="priority" aria-label="Priority">{% for p in priorities %}<option value="{{ p }}" {{ 'selected' if r.priority == p }}>{{ p|capitalize }}</option>{% endfor %}</select>
+            <select name="assigned_to" aria-label="Assign to"><option value="">Unassigned</option>{% for s in staff %}<option value="{{ s.id }}" {{ 'selected' if r.assigned_to == s.id }}>{{ s.full_name }}</option>{% endfor %}</select>
+            <input type="date" name="due_date" value="{{ r.due_date.isoformat() if r.due_date }}" aria-label="Due date" title="Due date">
+            <button class="btn btn-small btn-primary">Save</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p class="empty muted">No reports match. Reports show up once residents start submitting them.</p>{% endif %}
+</section>
+<datalist id="categories"><option>Plumbing</option><option>Electrical</option><option>Roads and drainage</option><option>Streetlights</option><option>Garbage collection</option><option>Trees and landscaping</option><option>Common areas</option><option>Other</option></datalist>
+{% if not staff %}<p class="muted">No active maintenance personnel yet. The system administrator can add them under Accounts.</p>{% endif %}
+{% endblock %}

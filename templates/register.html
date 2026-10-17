@@ -1,0 +1,43 @@
+{% extends 'auth.html' %}
+{% block title %}Create account{% endblock %}
+{% block content %}
+  {% if closed %}
+  <h1>Sign-up is closed</h1>
+  <p class="muted">New resident accounts aren't being accepted right now. Please contact the subdivision office.</p>
+  <p class="auth-alt"><a href="{{ url_for('login') }}">Back to log in</a></p>
+  {% else %}
+  <h1>Create a resident account</h1>
+  <p class="muted">The system administrator approves new accounts before you can log in.</p>
+  <form method="post" class="stack" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Full name
+      <input type="text" name="full_name" value="{{ form.get('full_name','') }}" required autofocus>
+    </label>
+    <div class="row2">
+      <label>Username
+        <input type="text" name="username" value="{{ form.get('username','') }}" autocomplete="username" required>
+      </label>
+      <label>Phone
+        <input type="tel" name="phone" value="{{ form.get('phone','') }}">
+      </label>
+    </div>
+    <label>Email
+      <input type="email" name="email" value="{{ form.get('email','') }}" autocomplete="email" required>
+    </label>
+    <label>Home address
+      <input type="text" name="address" value="{{ form.get('address','') }}" placeholder="Block 4, Lot 12" required>
+    </label>
+    <div class="row2">
+      <label>Password
+        <input type="password" name="password" minlength="10" autocomplete="new-password" required>
+      </label>
+      <label>Confirm password
+        <input type="password" name="confirm" minlength="10" autocomplete="new-password" required>
+      </label>
+    </div>
+    <p class="muted">Password: at least 10 characters, with letters and numbers.</p>
+    <button class="btn btn-primary" type="submit">Create account</button>
+  </form>
+  <p class="auth-alt">Already registered? <a href="{{ url_for('login') }}">Log in</a></p>
+  {% endif %}
+{% endblock %}

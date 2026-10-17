@@ -1,0 +1,21 @@
+{% extends 'auth.html' %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+  <h1>Log in</h1>
+  <p class="muted">Use the username or email on your account.</p>
+  <form method="post" class="stack" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Username or email
+      <input type="text" name="identifier" autocomplete="username" required autofocus>
+    </label>
+    <label>Password
+      <span class="pw">
+        <input type="password" name="password" autocomplete="current-password" required>
+        <button type="button" class="pw-toggle" data-toggle-pw>Show</button>
+      </span>
+    </label>
+    <button class="btn btn-primary" type="submit">Log in</button>
+  </form>
+  <p class="auth-alt"><a href="{{ url_for('forgot_password') }}">Forgot your password?</a></p>
+  <p class="auth-alt">New resident? <a href="{{ url_for('register') }}">Create an account</a></p>
+{% endblock %}

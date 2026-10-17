@@ -1,0 +1,64 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Lost &amp; found{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Lost &amp; found</h1><button class="btn btn-primary" data-open="lost-dialog">I lost something</button></header>
+
+<section class="panel">
+  <div class="panel-head"><h2>Found at the guardhouse</h2></div>
+  {{ filters(q, 'Search found items') }}
+  {% if found %}
+  <div class="cards">
+    {% for i in found %}
+    <article class="card">
+      {% if i.photo %}{{ gallery([{'file': i.photo}]) }}{% endif %}
+      <h3>{{ i.item_name }}</h3>
+      <p>{{ i.description }}</p>
+      <p class="muted">{{ i.location or 'Location not recorded' }} · found {{ i.created_at.strftime('%b %d, %Y') }}</p>
+      {% if i.status == 'claimed' %}<p>{{ tag('claimed', 'claim pending') }}{% if i.claimant_id == me %} <span class="muted">(yours)</span>{% endif %}</p>
+      {% else %}
+      <details class="inline"><summary>This is mine</summary>
+        <form method="post" action="{{ url_for('resident_claim', item_id=i.id) }}" class="stack">
+          {{ csrf() }}
+          <label>Prove it's yours<textarea name="claim_details" rows="3" required minlength="10" placeholder="Marks, contents, brand, where and when you lost it&hellip;"></textarea></label>
+          <p class="muted hint">Security will check this and your ID before releasing it.</p>
+          <div><button class="btn btn-small btn-primary">Send claim</button></div>
+        </form>
+      </details>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}<p class="empty muted">No found items match. Check again later, or report your lost item.</p>{% endif %}
+</section>
+
+<section class="panel">
+  <div class="panel-head"><h2>My lost reports and claims</h2></div>
+  {% if mine %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Item</th><th>Type</th><th>Status</th><th>Filed</th><th></th></tr></thead>
+    <tbody>{% for i in mine %}
+      <tr><td><b>{{ i.item_name }}</b><br><span class="muted">{{ i.description }}</span></td>
+      <td>{{ 'My claim' if i.claimant_id == me else 'Lost report' }}</td>
+      <td>{{ tag(i.status, 'claim pending' if i.status == 'claimed' else i.status) }}{% if i.status == 'released' %}<br><span class="muted">Collected {{ i.released_at.strftime('%b %d') if i.released_at }}</span>{% endif %}</td>
+      <td class="muted">{{ i.created_at.strftime('%b %d, %Y') }}</td>
+      <td class="actions">
+        {% if i.claimant_id == me and i.status == 'claimed' %}<form method="post" action="{{ url_for('resident_claim_withdraw', item_id=i.id) }}">{{ csrf() }}<button class="btn btn-small btn-ghost">Withdraw claim</button></form>{% endif %}
+        {% if i.kind == 'lost' and i.status == 'open' %}<form method="post" action="{{ url_for('resident_lost_close', item_id=i.id) }}">{{ csrf() }}<button class="btn btn-small">I found it</button></form>{% endif %}
+      </td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty muted">Nothing yet.</p>{% endif %}
+</section>
+
+<dialog id="lost-dialog">
+  <form method="post" action="{{ url_for('resident_lost_new') }}" enctype="multipart/form-data" class="stack">
+    {{ csrf() }}<h2>I lost something</h2>
+    <label>What is it?<input type="text" name="item_name" maxlength="120" required></label>
+    <label>Describe it<textarea name="description" rows="3" required minlength="5" placeholder="Color, brand, markings&hellip;"></textarea></label>
+    <label>Where did you lose it?<input type="text" name="location" maxlength="160"></label>
+    <label>Photo (optional)<input type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/gif"></label>
+    <div class="dialog-actions"><button type="button" class="btn" data-close>Cancel</button><button class="btn btn-primary">Report it</button></div>
+  </form>
+</dialog>
+{% endblock %}

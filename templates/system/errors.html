@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters with context %}
+{% block title %}Error log{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Error log</h1></header>
+{{ filters(q, 'Search page or message', [], True, d1, d2) }}
+<section class="panel">
+  {% if rows %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>When</th><th>Page</th><th>User</th><th>Message</th></tr></thead>
+    <tbody>{% for e in rows %}<tr><td class="muted nowrap">{{ e.created_at.strftime('%b %d, %Y %H:%M') }}</td><td>{{ e.path }}</td><td>{{ e.full_name or '—' }}</td><td>{{ e.message }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty muted">No errors recorded. Unexpected problems will be listed here.</p>{% endif %}
+</section>
+{% endblock %}

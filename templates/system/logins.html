@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters with context %}
+{% block title %}Login history{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Login history</h1></header>
+{{ filters(q, 'Search username, email or IP', [('user', 'Any account', people, who), ('result', 'Any result', [('ok','Successful'),('failed','Failed')], result)], True, d1, d2) }}
+<section class="panel">
+  {% if rows %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>When</th><th>Account</th><th>Result</th><th>IP</th><th>Device</th></tr></thead>
+    <tbody>{% for h in rows %}
+      <tr><td class="muted nowrap">{{ h.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+      <td>{{ h.full_name or h.identifier }}{% if h.username %}<br><span class="muted">@{{ h.username }}</span>{% else %}<br><span class="muted">not an account</span>{% endif %}</td>
+      <td>{% if h.success %}{{ tag('active', 'success') }}{% else %}{{ tag('inactive', 'failed') }} <span class="muted">{{ h.reason|replace('_',' ') }}</span>{% endif %}</td>
+      <td class="muted">{{ h.ip }}</td><td class="muted">{{ (h.user_agent or '')[:70] }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty muted">No logins match those filters.</p>{% endif %}
+</section>
+{% endblock %}

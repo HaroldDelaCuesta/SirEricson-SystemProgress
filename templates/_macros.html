@@ -1,0 +1,43 @@
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro tag(value, label=None) %}<span class="tag tag-{{ value }}">{{ (label or value)|string|replace('_',' ') }}</span>{% endmacro %}
+
+{% macro filters(q, placeholder, selects=[], dates=False, d1='', d2='') %}
+<form method="get" class="filters" role="search">
+  {% if request.args.get('tab') %}<input type="hidden" name="tab" value="{{ request.args.get('tab') }}">{% endif %}
+  {% if request.args.get('period') %}<input type="hidden" name="period" value="{{ request.args.get('period') }}">{% endif %}
+  <input type="search" name="q" value="{{ q }}" placeholder="{{ placeholder }}" aria-label="Search">
+  {% for s in selects %}
+  <select name="{{ s[0] }}" aria-label="{{ s[1] }}">
+    <option value="">{{ s[1] }}</option>
+    {% for o in s[2] %}<option value="{{ o[0] }}" {{ 'selected' if o[0] == s[3] }}>{{ o[1] }}</option>{% endfor %}
+  </select>
+  {% endfor %}
+  {% if dates %}
+  <label class="date-filter">From <input type="date" name="from" value="{{ d1 }}"></label>
+  <label class="date-filter">To <input type="date" name="to" value="{{ d2 }}"></label>
+  {% endif %}
+  <button class="btn" type="submit">Filter</button>
+  {% if request.args %}<a class="btn btn-ghost" href="{{ request.path }}">Clear</a>{% endif %}
+</form>
+{% endmacro %}
+
+{% macro pdf_button(label='Export PDF') %}
+<a class="btn" href="{{ url_for(request.endpoint, **dict(request.args.to_dict(), format='pdf')) }}">{{ label }}</a>
+{% endmacro %}
+
+{% macro gallery(items) %}
+{% if items %}<div class="photo-grid">
+  {% for p in items %}<a href="{{ url_for('uploaded', name=p.file) }}" target="_blank" rel="noopener"><img src="{{ url_for('uploaded', name=p.file) }}" alt="Attached photo" loading="lazy"></a>{% endfor %}
+</div>{% endif %}
+{% endmacro %}
+
+{% macro timeline(items, actors=True) %}
+<ol class="timeline">
+  {% for h in items %}<li><span class="when">{{ h.created_at.strftime('%b %d, %Y %H:%M') }}</span> {{ h.text }}{% if actors and h.actor %} <span class="muted">&middot; {{ h.actor }}</span>{% endif %}</li>{% endfor %}
+</ol>
+{% endmacro %}
+
+{% macro stars(n) %}{% if n %}<span class="stars" role="img" aria-label="{{ n }} out of 5">{{ '★' * n }}{{ '☆' * (5 - n) }}</span>{% endif %}{% endmacro %}
+
+{% macro due(date, overdue) %}{% if date %}<span class="{{ 'overdue' if overdue }}">{{ date.strftime('%b %d, %Y') }}{% if overdue %} (overdue){% endif %}</span>{% else %}<span class="muted">none</span>{% endif %}{% endmacro %}

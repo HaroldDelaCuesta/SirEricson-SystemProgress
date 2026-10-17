@@ -1,0 +1,34 @@
+{% macro item(endpoint, label, badge=0, also=()) %}
+<a class="nav-link {{ 'active' if request.endpoint == endpoint or request.endpoint in also }}" href="{{ url_for(endpoint) }}">{{ label }}{% if badge %}<span class="badge">{{ badge }}</span>{% endif %}</a>
+{% endmacro %}
+{% set role = session.role %}
+{% if role == 'sysadmin' %}
+  {{ item('sys_dashboard', 'Dashboard') }}
+  {{ item('sys_accounts', 'Accounts', pending_badge) }}
+  {{ item('sys_sessions', 'Active sessions') }}
+  {{ item('sys_logins', 'Login history') }}
+  {{ item('sys_audit', 'Activity log') }}
+  {{ item('sys_errors', 'Error log') }}
+  {{ item('sys_settings', 'Settings') }}
+  {{ item('sys_backup', 'Backup') }}
+{% elif role == 'subadmin' %}
+  {{ item('sub_dashboard', 'Dashboard') }}
+  {{ item('sub_reports', 'Reports', pending_badge, ('sub_report_detail',)) }}
+  {{ item('sub_announcements', 'Announcements', 0, ('sub_announcement_edit',)) }}
+  {{ item('sub_lostfound', 'Lost &amp; found'|safe) }}
+  {{ item('sub_summary', 'Summary report') }}
+{% elif role == 'security' %}
+  {{ item('security_home', 'Dashboard') }}
+  {{ item('security_found', 'Lost &amp; found'|safe, pending_badge) }}
+{% elif role == 'maintenance' %}
+  {{ item('maintenance_home', 'Dashboard') }}
+  {{ item('maintenance_tasks', 'My tasks', 0, ('maintenance_task',)) }}
+  {{ item('maintenance_history', 'Work history') }}
+{% elif role == 'resident' %}
+  {{ item('resident_home', 'Home') }}
+  {{ item('resident_reports', 'My reports', 0, ('resident_report_detail',)) }}
+  {{ item('resident_report_new', 'Report a problem') }}
+  {{ item('resident_announcements', 'Announcements') }}
+  {{ item('resident_lostfound', 'Lost &amp; found'|safe) }}
+  {{ item('resident_profile', 'My profile') }}
+{% endif %}

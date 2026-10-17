@@ -1,0 +1,42 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Report #{{ r.id }}{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Report #{{ r.id }}</h1><a class="btn" href="{{ url_for('resident_reports') }}">All my reports</a></header>
+{% if r.resident_response == 'reopened' and r.status != 'completed' %}<div class="banner bad"><b>You reopened this report:</b> {{ r.reopen_note }}</div>{% endif %}
+{% if r.status == 'completed' and r.resident_response == 'none' %}<div class="banner"><b>This report was marked completed.</b> Please tell us whether it's really fixed (below).</div>{% endif %}
+<div class="two-col">
+  <section class="panel">
+    <h2>Details</h2><br>
+    <dl class="kv">
+      <dt>Status</dt><dd>{{ tag(r.status) }}{% if r.status == 'completed' and r.verified %} {{ tag('active', 'verified by the office') }}{% endif %}</dd>
+      <dt>Category</dt><dd>{{ r.category }}</dd>
+      <dt>Location</dt><dd>{{ r.location or '—' }}</dd>
+      <dt>Filed</dt><dd>{{ r.created_at.strftime('%b %d, %Y %H:%M') }}</dd>
+      <dt>Assigned to</dt><dd>{{ r.assignee or 'Not assigned yet' }}</dd>
+      <dt>Your description</dt><dd>{{ r.description }}</dd>
+      {% if r.work_notes and r.status == 'completed' %}<dt>Repair notes</dt><dd>{{ r.work_notes }}</dd>{% endif %}
+    </dl>
+    {% if report_photos %}<h3 class="mt">Your photos</h3>{{ gallery(report_photos) }}{% endif %}
+    {% if done_photos and r.status == 'completed' %}<h3 class="mt">Photos of the finished repair</h3>{{ gallery(done_photos) }}{% endif %}
+
+    {% if r.status == 'completed' and r.resident_response == 'none' %}
+    <h3 class="mt">Is it fixed?</h3>
+    <form method="post" action="{{ url_for('resident_report_confirm', report_id=r.id) }}" class="stack">
+      {{ csrf() }}
+      <div class="rating" role="group" aria-label="Rate the repair">{% for n in range(1, 6) %}<label><input type="radio" name="rating" value="{{ n }}"> {{ n }} ★</label>{% endfor %}</div>
+      <label>Comments (optional)<textarea name="feedback" rows="3" maxlength="1000"></textarea></label>
+      <div><button class="btn btn-primary">Yes, it's fixed</button></div>
+    </form>
+    <form method="post" action="{{ url_for('resident_report_reopen', report_id=r.id) }}" class="stack mt">
+      {{ csrf() }}
+      <label>Not fixed? Tell us what is still wrong<textarea name="note" rows="3" maxlength="1000" required></textarea></label>
+      <div><button class="btn btn-danger">Reopen this report</button></div>
+    </form>
+    {% elif r.resident_response == 'confirmed' %}
+    <p class="mt">You confirmed this was fixed. {{ stars(r.rating) }} {% if r.feedback %}<br><span class="muted">&ldquo;{{ r.feedback }}&rdquo;</span>{% endif %}</p>
+    {% endif %}
+  </section>
+  <section class="panel"><h2>Progress</h2><br>{{ timeline(history, False) }}</section>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+To: dela8cuesta@gmail.com
+Subject: Subdivision Portal: reset your password
+
+Hello jimajima,
+
+Someone asked to reset the password for this account. If it was you, open this link within 30 minutes:
+
+http://127.0.0.1:5000/reset-password/LF9KJ4ZMsuKoa_trtBiSRwewY0bEAiSRCTuB59_JvNY
+
+If it wasn't you, ignore this email. Your password stays the same.
+

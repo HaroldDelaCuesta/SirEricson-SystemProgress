@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf with context %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Notifications</h1>
+  <form method="post" action="{{ url_for('notifications_read_all') }}">{{ csrf() }}<button class="btn">Mark all read</button></form>
+</header>
+<div class="tabs">
+  <a class="{{ 'active' if not view }}" href="{{ url_for('notifications_page') }}">All</a>
+  <a class="{{ 'active' if view == 'unread' }}" href="{{ url_for('notifications_page', view='unread') }}">Unread</a>
+</div>
+<section class="panel">
+  {% if rows %}
+  <ul class="feed">
+    {% for n in rows %}
+    <li>
+      <a class="{{ 'unread-link' if not n.is_read }}" href="{{ url_for('notification_open', nid=n.id) }}">{{ n.message }}</a>
+      <span class="muted nowrap">{{ n.ago }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="empty muted">{{ 'You have no unread notifications.' if view else 'Nothing here yet.' }}</p>{% endif %}
+</section>
+{% endblock %}

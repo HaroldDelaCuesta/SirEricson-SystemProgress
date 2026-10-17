@@ -1,0 +1,22 @@
+{% extends 'auth.html' %}
+{% block title %}Choose a new password{% endblock %}
+{% block content %}
+{% if invalid %}
+  <h1>Link not valid</h1>
+  <p class="muted">This reset link is invalid, already used, or has expired. Links work for 30 minutes and only once.</p>
+  <p class="auth-alt"><a href="{{ url_for('forgot_password') }}">Ask for a new link</a></p>
+{% else %}
+  <h1>Choose a new password</h1>
+  <p class="muted">At least 10 characters, with letters and numbers.</p>
+  <form method="post" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>New password
+      <input type="password" name="new" minlength="10" autocomplete="new-password" required autofocus>
+    </label>
+    <label>Confirm new password
+      <input type="password" name="confirm" minlength="10" autocomplete="new-password" required>
+    </label>
+    <button class="btn btn-primary" type="submit">Save new password</button>
+  </form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Edit post{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Edit post</h1><a class="btn" href="{{ url_for('sub_announcements') }}">Back</a></header>
+<section class="panel narrow">
+  <form method="post" class="stack">
+    {{ csrf() }}
+    <div class="row2">
+      <label>Type<select name="kind"><option value="announcement" {{ 'selected' if a.kind == 'announcement' }}>Announcement</option><option value="activity" {{ 'selected' if a.kind == 'activity' }}>Upcoming activity</option></select></label>
+      <label>Event date (optional)<input type="date" name="event_date" value="{{ a.event_date.strftime('%Y-%m-%d') if a.event_date }}"></label>
+    </div>
+    <label>Title<input type="text" name="title" value="{{ a.title }}" maxlength="160" required></label>
+    <label>Details<textarea name="body" rows="7" required>{{ a.body }}</textarea></label>
+    <label class="checkline"><input type="checkbox" name="published" {{ 'checked' if a.published }}><span>Published (visible to residents)</span></label>
+    <label class="checkline"><input type="checkbox" name="pinned" {{ 'checked' if a.pinned }}><span>Pinned to the top</span></label>
+    <div><button class="btn btn-primary" type="submit">Save changes</button></div>
+  </form>
+</section>
+{% endblock %}

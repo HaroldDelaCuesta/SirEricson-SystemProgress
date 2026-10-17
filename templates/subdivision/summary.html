@@ -1,0 +1,42 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Summary report{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Summary report</h1><div class="actions">{{ pdf_button('Download PDF') }}</div></header>
+<form method="get" class="filters">
+  <label class="date-filter">From <input type="date" name="from" value="{{ s.d1 }}"></label>
+  <label class="date-filter">To <input type="date" name="to" value="{{ s.d2 }}"></label>
+  <button class="btn" type="submit">Update</button>
+</form>
+<section class="stats">
+  <div class="stat"><b>{{ s.total }}</b><span>Reports received</span></div>
+  <div class="stat"><b>{{ s.avg_days if s.avg_days is not none else 'n/a' }}</b><span>Avg days to complete</span></div>
+  <div class="stat"><b>{{ s.avg_rating if s.avg_rating is not none else 'n/a' }}</b><span>Avg resident rating</span></div>
+  <div class="stat"><b>{{ s.reopened }}</b><span>Reopened by residents</span></div>
+  <div class="stat {{ 'stat-alert' if s.overdue_now }}"><b>{{ s.overdue_now }}</b><span>Overdue right now</span></div>
+</section>
+<div class="two-col">
+  <section class="panel"><div class="panel-head"><h2>By status</h2></div>
+    {% if s.by_status %}<ul class="feed">{% for r in s.by_status %}<li><span>{{ tag(r.status) }}</span><b>{{ r.n }}</b></li>{% endfor %}</ul>{% else %}<p class="empty muted">No reports in this period.</p>{% endif %}
+    <div class="panel-head mt"><h2>By priority</h2></div>
+    {% if s.by_priority %}<ul class="feed">{% for r in s.by_priority %}<li><span>{{ tag(r.priority) }}</span><b>{{ r.n }}</b></li>{% endfor %}</ul>{% else %}<p class="empty muted">&mdash;</p>{% endif %}
+  </section>
+  <section class="panel"><div class="panel-head"><h2>By category</h2></div>
+    {% if s.by_category %}<ul class="feed">{% for r in s.by_category %}<li><span><b>{{ r.category }}</b></span><span class="muted">{{ r.done|int }} of {{ r.n }} done</span></li>{% endfor %}</ul>{% else %}<p class="empty muted">No reports in this period.</p>{% endif %}
+    <div class="panel-head mt"><h2>Lost &amp; found</h2></div>
+    <ul class="feed">
+      <li><span>Found items recorded</span><b>{{ s.lf.found }}</b></li><li><span>Lost items reported</span><b>{{ s.lf.lost }}</b></li>
+      <li><span>Claims made</span><b>{{ s.lf.claims }}</b></li><li><span>Items released</span><b>{{ s.lf.released }}</b></li>
+    </ul>
+  </section>
+</div>
+<section class="panel mt">
+  <div class="panel-head"><h2>Reports in this period</h2></div>
+  {% if s.rows %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Filed</th><th>Resident</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned to</th></tr></thead>
+    <tbody>{% for r in s.rows %}<tr><td><a href="{{ url_for('sub_report_detail', report_id=r.id) }}">{{ r.id }}</a></td><td class="muted">{{ r.created_at.strftime('%b %d, %Y') }}</td><td>{{ r.resident }}</td><td>{{ r.category }}</td><td>{{ tag(r.priority) }}</td><td>{{ tag(r.status) }}</td><td>{{ r.assignee or 'Unassigned' }}</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty muted">No reports in this period.</p>{% endif %}
+</section>
+{% endblock %}

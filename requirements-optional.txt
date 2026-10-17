@@ -1,0 +1,5 @@
+# Optional extras. The app runs without them.
+# Pillow: shrinks uploaded photos and removes hidden data such as GPS location.
+# reportlab: needed only for the PDF downloads.
+Pillow>=10.0
+reportlab>=4.0

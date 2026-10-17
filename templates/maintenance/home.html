@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Maintenance board</h1><a class="btn" href="{{ url_for('maintenance_tasks') }}">All my tasks</a></header>
+<section class="stats">
+  <a class="stat" href="{{ url_for('maintenance_tasks') }}"><b>{{ stats.open }}</b><span>Open tasks</span></a>
+  <a class="stat {{ 'stat-alert' if stats.overdue }}" href="{{ url_for('maintenance_tasks') }}"><b>{{ stats.overdue }}</b><span>Overdue</span></a>
+  <div class="stat"><b>{{ stats.soon }}</b><span>Due in 3 days</span></div>
+  <div class="stat {{ 'stat-alert' if stats.reopened }}"><b>{{ stats.reopened }}</b><span>Reopened by residents</span></div>
+  <a class="stat" href="{{ url_for('maintenance_history') }}"><b>{{ stats.done_month }}</b><span>Completed this month</span></a>
+</section>
+<section class="panel">
+  <div class="panel-head"><h2>Do these first</h2><span class="muted">Most urgent, then nearest due date</span></div>
+  {% if upnext %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Job</th><th>Priority</th><th>Due</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for t in upnext %}
+      <tr><td>{{ t.id }}</td><td><b>{{ t.category }}</b><br><span class="muted">{{ t.location or 'No location' }}</span></td><td>{{ tag(t.priority) }}</td>
+      <td>{{ due(t.due_date, t.overdue) }}</td><td>{{ tag(t.status) }}{% if t.resident_response == 'reopened' %} {{ tag('reopened') }}{% endif %}</td>
+      <td class="actions"><a class="btn btn-small btn-primary" href="{{ url_for('maintenance_task', task_id=t.id) }}">Open</a></td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty muted">No open tasks. New assignments will show up here and in your notifications.</p>{% endif %}
+</section>
+{% endblock %}

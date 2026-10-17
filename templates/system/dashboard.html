@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters with context %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<header class="page-head"><h1>System dashboard</h1></header>
+
+<section class="stats">
+  <a class="stat" href="{{ url_for('sys_accounts') }}"><b>{{ stats.total }}</b><span>Active accounts</span></a>
+  <a class="stat" href="{{ url_for('sys_accounts', role='resident') }}"><b>{{ stats.counts.get('resident', 0) }}</b><span>Residents</span></a>
+  <div class="stat"><b>{{ stats.counts.get('maintenance', 0) + stats.counts.get('security', 0) }}</b><span>Maintenance &amp; security staff</span></div>
+  <div class="stat"><b>{{ stats.counts.get('subadmin', 0) }}</b><span>Subdivision administrators</span></div>
+  <a class="stat {{ 'stat-alert' if stats.pending }}" href="{{ url_for('sys_accounts', status='pending') }}"><b>{{ stats.pending }}</b><span>Awaiting approval</span></a>
+  <a class="stat" href="{{ url_for('sys_sessions') }}"><b>{{ stats.online }}</b><span>People online now</span></a>
+  <a class="stat {{ 'stat-alert' if stats.failed_logins > 5 }}" href="{{ url_for('sys_logins', result='failed') }}"><b>{{ stats.failed_logins }}</b><span>Failed logins, 24 h</span></a>
+  <a class="stat {{ 'stat-alert' if stats.errors }}" href="{{ url_for('sys_errors') }}"><b>{{ stats.errors }}</b><span>Errors, 7 days</span></a>
+</section>
+
+<section class="panel">
+  <div class="panel-head"><h2>Waiting for approval</h2><a href="{{ url_for('sys_accounts', status='pending') }}">See all</a></div>
+  {% if pending %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Address</th><th>Email</th><th>Registered</th><th></th></tr></thead>
+    <tbody>
+    {% for u in pending %}
+      <tr><td>{{ u.full_name }}</td><td>{{ u.address }}</td><td>{{ u.email }}</td><td>{{ u.created_at.strftime('%b %d, %Y') }}</td>
+        <td class="actions"><form method="post" action="{{ url_for('sys_set_status', user_id=u.id) }}">{{ csrf() }}<input type="hidden" name="action" value="approve"><button class="btn btn-small btn-primary">Approve</button></form></td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p class="empty muted">No one is waiting. New resident sign-ups will show up here.</p>{% endif %}
+</section>
+
+<div class="two-col">
+  <section class="panel">
+    <div class="panel-head"><h2>Recent activity</h2><a href="{{ url_for('sys_audit') }}">Open activity log</a></div>
+    {% if activity %}<ul class="feed">{% for a in activity %}
+      <li><span><b>{{ a.action }}</b> <span class="muted">{{ a.detail }}</span><br><span class="muted">{{ a.full_name or 'system' }}</span></span><span class="muted nowrap">{{ a.created_at.strftime('%b %d, %H:%M') }}</span></li>
+    {% endfor %}</ul>{% else %}<p class="empty muted">Nothing logged yet.</p>{% endif %}
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>Latest errors</h2><a href="{{ url_for('sys_errors') }}">Open error log</a></div>
+    {% if errors %}<ul class="feed">{% for e in errors %}
+      <li><span><b>{{ e.path }}</b><br><span class="muted">{{ e.message[:110] }}</span></span><span class="muted nowrap">{{ e.created_at.strftime('%b %d, %H:%M') }}</span></li>
+    {% endfor %}</ul>{% else %}<p class="empty muted">No errors recorded.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

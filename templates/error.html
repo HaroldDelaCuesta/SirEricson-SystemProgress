@@ -1,0 +1,7 @@
+{% extends 'auth.html' %}
+{% block title %}Error {{ code }}{% endblock %}
+{% block content %}
+  <h1>{{ code }}</h1>
+  <p>{{ message }}</p>
+  <p class="auth-alt"><a href="{{ url_for('index') }}">Back to your home page</a></p>
+{% endblock %}

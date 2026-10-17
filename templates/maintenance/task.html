@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Task #{{ t.id }}{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Task #{{ t.id }}</h1><a class="btn" href="{{ url_for('maintenance_tasks') }}">All my tasks</a></header>
+{% if t.resident_response == 'reopened' and t.status != 'completed' %}<div class="banner bad"><b>The resident says it isn't fixed:</b> {{ t.reopen_note }}<br><span class="muted">Add new photos of the repair when you complete it again.</span></div>{% endif %}
+<div class="two-col">
+  <section class="panel">
+    <h2>The problem</h2><br>
+    <dl class="kv">
+      <dt>Category</dt><dd>{{ t.category }}</dd>
+      <dt>Location</dt><dd>{{ t.location or '—' }}</dd>
+      <dt>Priority</dt><dd>{{ tag(t.priority) }}</dd>
+      <dt>Due</dt><dd>{{ due(t.due_date, t.overdue) }}</dd>
+      <dt>Status</dt><dd>{{ tag(t.status) }}</dd>
+      <dt>Description</dt><dd>{{ t.description }}</dd>
+    </dl>
+    {% if report_photos %}<h3 class="mt">Photos from the report</h3>{{ gallery(report_photos) }}{% endif %}
+    {% if done_photos %}<h3 class="mt">Your completion photos</h3>{{ gallery(done_photos) }}{% endif %}
+    <h2 class="mt">History</h2><br>{{ timeline(history, False) }}
+  </section>
+  <section class="panel">
+    <h2>Update this task</h2><br>
+    {% if t.status == 'completed' %}
+      <p>This task is <b>completed</b>. {% if t.work_notes %}<br><span class="muted">Your notes: {{ t.work_notes }}</span>{% endif %}</p>
+    {% else %}
+    <form method="post" action="{{ url_for('maintenance_task_update', task_id=t.id) }}" enctype="multipart/form-data" class="stack">
+      {{ csrf() }}
+      <label>Status
+        <select name="status">
+          {% if order[t.status] <= 0 %}<option value="pending" {{ 'selected' if t.status == 'pending' }}>Pending</option>{% endif %}
+          <option value="in_progress" {{ 'selected' if t.status == 'in_progress' }}>In progress</option>
+          <option value="completed">Completed (needs a photo)</option>
+        </select>
+      </label>
+      <label>Notes about your work<textarea name="notes" rows="4" maxlength="2000">{{ t.work_notes or '' }}</textarea></label>
+      <label>Photos of the repair (up to 4)<input type="file" name="photos" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
+      <p class="muted hint">Marking a task Completed requires at least one photo showing the finished work.</p>
+      <div><button class="btn btn-primary" type="submit">Save update</button></div>
+    </form>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

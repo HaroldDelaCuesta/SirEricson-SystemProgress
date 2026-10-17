@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters with context %}
+{% block title %}Activity log{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Activity log</h1></header>
+<p class="muted">Who did what, and when. Shows the latest 500 matches.</p>
+{{ filters(q, 'Search action or detail', [('user', 'Anyone', people, who)], True, d1, d2) }}
+<section class="panel">
+  {% if rows %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>When</th><th>Who</th><th>Action</th><th>Detail</th><th>IP</th></tr></thead>
+    <tbody>{% for a in rows %}
+      <tr><td class="muted nowrap">{{ a.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+      <td>{{ a.full_name or '—' }}{% if a.role %}<br><span class="muted">{{ role_labels[a.role] }}</span>{% endif %}</td>
+      <td><b>{{ a.action }}</b></td><td>{{ a.detail }}</td><td class="muted">{{ a.ip }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty muted">No activity matches those filters.</p>{% endif %}
+</section>
+{% endblock %}

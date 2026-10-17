@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}My tasks{% endblock %}
+{% block content %}
+<header class="page-head"><h1>My tasks</h1></header>
+{{ filters(q, 'Search my tasks', [('status','Open tasks',[('pending','Pending only'),('in_progress','In progress only')],view if view != 'open' else ''),('priority','Any priority',[('urgent','Urgent'),('high','High'),('normal','Normal'),('low','Low')],priority)]) }}
+<section class="panel">
+  {% if rows %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Job</th><th>Priority</th><th>Due</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for t in rows %}
+      <tr><td>{{ t.id }}</td>
+      <td><b>{{ t.category }}</b> · {{ t.location or 'No location' }}<br><span class="muted">{{ t.description[:120] }}{{ '…' if t.description|length > 120 }}</span></td>
+      <td>{{ tag(t.priority) }}</td><td>{{ due(t.due_date, t.overdue) }}</td>
+      <td>{{ tag(t.status) }}{% if t.resident_response == 'reopened' %}<br>{{ tag('reopened') }}{% endif %}</td>
+      <td class="actions"><a class="btn btn-small btn-primary" href="{{ url_for('maintenance_task', task_id=t.id) }}">Open</a></td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty muted">No tasks match.</p>{% endif %}
+</section>
+{% endblock %}

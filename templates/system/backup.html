@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters with context %}
+{% block title %}Backup{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Database backup</h1></header>
+<section class="panel narrow">
+  <p>Downloads one <b>.sql</b> file with every account, report, record and setting. Active logins and reset links are left out on purpose.</p>
+  <p class="muted">Uploaded photos are files, not database rows. Copy the <b>uploads</b> folder in the project to back those up too. To restore, open phpMyAdmin and use Import.</p>
+  <p class="muted">{% if last %}Last backup downloaded {{ last.created_at.strftime('%b %d, %Y %H:%M') }}.{% else %}No backup has been downloaded yet.{% endif %}</p>
+  <form method="post" class="stack">
+    {{ csrf() }}
+    <label>Confirm with your password<input type="password" name="password" autocomplete="current-password" required></label>
+    <div><button class="btn btn-primary" type="submit">Download backup</button></div>
+  </form>
+  <p class="muted hint">The file contains personal data. Keep it somewhere private.</p>
+</section>
+{% endblock %}

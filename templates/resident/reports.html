@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}My reports{% endblock %}
+{% block content %}
+<header class="page-head"><h1>My reports</h1><a class="btn btn-primary" href="{{ url_for('resident_report_new') }}">Report a problem</a></header>
+<div class="tabs">
+  <a class="{{ 'active' if not view }}" href="{{ url_for('resident_reports') }}">All</a>
+  <a class="{{ 'active' if view == 'confirm' }}" href="{{ url_for('resident_reports', view='confirm') }}">Needs my confirmation</a>
+</div>
+{{ filters(q, 'Search my reports', [('status','Any status',[('pending','Pending'),('in_progress','In progress'),('completed','Completed')],status),('category','Any category',cats,category)], True, d1, d2) }}
+<section class="panel">
+  {% if rows %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Problem</th><th>Status</th><th>Filed</th><th></th></tr></thead>
+    <tbody>{% for r in rows %}
+      <tr><td>{{ r.id }}</td>
+      <td><b>{{ r.category }}</b><br><span class="muted">{{ r.description[:110] }}{{ '…' if r.description|length > 110 }}</span></td>
+      <td>{{ tag(r.status) }}{% if r.status == 'completed' and r.resident_response == 'none' %}<br><span class="muted">please confirm</span>{% elif r.resident_response == 'reopened' and r.status != 'completed' %}<br>{{ tag('reopened') }}{% endif %}</td>
+      <td class="muted">{{ r.created_at.strftime('%b %d, %Y') }}</td>
+      <td class="actions"><a class="btn btn-small" href="{{ url_for('resident_report_detail', report_id=r.id) }}">Open</a></td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty muted">No reports match. <a href="{{ url_for('resident_report_new') }}">Report a problem</a></p>{% endif %}
+</section>
+{% endblock %}

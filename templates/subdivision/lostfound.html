@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Lost &amp; found{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Lost &amp; found moderation</h1></header>
+<p class="muted">Security records and releases items. You can remove posts that don't belong.</p>
+{{ filters(q, 'Search item, description or place', [('kind','Lost and found',[('found','Found items'),('lost','Lost reports')],kind),('status','Any status',[('open','Open'),('claimed','Claim pending'),('released','Released'),('closed','Closed'),('removed','Removed')],status)]) }}
+<section class="panel">
+  {% if rows %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Item</th><th>Type</th><th>Where</th><th>Posted by</th><th>Handled by</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for r in rows %}
+      <tr>
+        <td><b>{{ r.item_name }}</b><br><span class="muted">{{ r.description }}</span>{% if r.released_to %}<br><span class="muted">Released to {{ r.released_to }}</span>{% endif %}</td>
+        <td>{{ r.kind }}</td><td>{{ r.location or '—' }}</td><td>{{ r.reporter }}</td><td>{{ r.handler or '—' }}</td>
+        <td>{{ tag(r.status, 'claim pending' if r.status == 'claimed' else r.status) }}</td>
+        <td class="actions">
+          {% if r.status != 'released' %}<form method="post" action="{{ url_for('sub_lostfound_toggle', item_id=r.id) }}">{{ csrf() }}
+            {% if r.status == 'removed' %}<input type="hidden" name="action" value="restore"><button class="btn btn-small">Restore</button>
+            {% else %}<input type="hidden" name="action" value="remove"><button class="btn btn-small btn-ghost" data-confirm="Remove this post?">Remove</button>{% endif %}
+          </form>{% endif %}
+        </td>
+      </tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty muted">No lost &amp; found items match.</p>{% endif %}
+</section>
+{% endblock %}

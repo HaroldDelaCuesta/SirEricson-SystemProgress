@@ -1,0 +1,11 @@
+To: guardkuya@gmail.com
+Subject: Subdivision Portal: reset your password
+
+Hello Kuya Guard,
+
+Someone asked to reset the password for this account. If it was you, open this link within 30 minutes:
+
+http://127.0.0.1:5000/reset-password/IVsLRzTOYSyWF9beNiekIjs1ipewEgNVuMCp-5qeTuk
+
+If it wasn't you, ignore this email. Your password stays the same.
+

@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Subdivision dashboard</h1></header>
+
+<section class="stats">
+  <a class="stat" href="{{ url_for('sub_reports') }}"><b>{{ stats.total }}</b><span>Reports received</span></a>
+  <a class="stat {{ 'stat-alert' if stats.unassigned }}" href="{{ url_for('sub_reports', view='unassigned') }}"><b>{{ stats.unassigned }}</b><span>Not yet assigned</span></a>
+  <a class="stat" href="{{ url_for('sub_reports', status='in_progress') }}"><b>{{ stats.in_progress }}</b><span>In progress</span></a>
+  <a class="stat {{ 'stat-alert' if stats.to_verify }}" href="{{ url_for('sub_reports', view='to_verify') }}"><b>{{ stats.to_verify }}</b><span>Completed, to verify</span></a>
+  <a class="stat {{ 'stat-alert' if stats.overdue }}" href="{{ url_for('sub_reports', view='overdue') }}"><b>{{ stats.overdue }}</b><span>Overdue tasks</span></a>
+  <a class="stat {{ 'stat-alert' if stats.reopened }}" href="{{ url_for('sub_reports', view='reopened') }}"><b>{{ stats.reopened }}</b><span>Reopened by residents</span></a>
+  <a class="stat" href="{{ url_for('sub_lostfound') }}"><b>{{ stats.lost_open }}</b><span>Open lost &amp; found</span></a>
+  <a class="stat" href="{{ url_for('sub_announcements') }}"><b>{{ stats.announcements }}</b><span>Published posts</span></a>
+</section>
+
+<section class="panel">
+  <div class="panel-head"><h2>Needs assigning</h2><a href="{{ url_for('sub_reports', view='unassigned') }}">See all</a></div>
+  {% if unassigned %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Resident</th><th>Category</th><th>Location</th><th>Priority</th><th>Filed</th></tr></thead>
+    <tbody>{% for r in unassigned %}
+      <tr><td><a href="{{ url_for('sub_report_detail', report_id=r.id) }}">{{ r.id }}</a></td><td>{{ r.resident }}</td><td>{{ r.category }}</td><td>{{ r.location or '—' }}</td>
+      <td>{{ tag(r.priority) }}</td><td class="muted">{{ r.created_at.strftime('%b %d, %Y') }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty muted">Every report has been assigned.</p>{% endif %}
+</section>
+
+<div class="two-col">
+  <section class="panel">
+    <div class="panel-head"><h2>Completed, ready to verify</h2><a href="{{ url_for('sub_reports', view='to_verify') }}">See all</a></div>
+    {% if to_verify %}<ul class="feed">{% for r in to_verify %}
+      <li><span><a href="{{ url_for('sub_report_detail', report_id=r.id) }}"><b>#{{ r.id }} {{ r.category }}</b></a> for {{ r.resident }}<br><span class="muted">Done by {{ r.assignee or 'unknown' }}</span></span></li>
+    {% endfor %}</ul>{% else %}<p class="empty muted">Nothing to verify.</p>{% endif %}
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>Reports by category</h2><a href="{{ url_for('sub_summary') }}">Summary report</a></div>
+    {% if by_category %}<ul class="feed">{% for c in by_category %}
+      <li><span><b>{{ c.category }}</b></span><span class="muted">{{ c.done|int }} of {{ c.n }} done</span></li>
+    {% endfor %}</ul>{% else %}<p class="empty muted">No reports yet.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

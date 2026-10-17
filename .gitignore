@@ -1,0 +1,6 @@
+.secret_key
+__pycache__/
+venv/
+uploads/
+outbox/
+backup-*.sql

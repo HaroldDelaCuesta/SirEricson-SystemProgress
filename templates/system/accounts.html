@@ -1,0 +1,65 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters with context %}
+{% block title %}Accounts{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Accounts</h1>
+  <button class="btn btn-primary" data-open="new-user">Add account</button>
+</header>
+
+{{ filters(q, 'Search name, username, email, address',
+   [('role', 'All roles', role_labels.items()|list, role),
+    ('status', 'Any status', [('pending','Pending'),('active','Active'),('inactive','Inactive')], status)]) }}
+
+<section class="panel">
+  {% if users %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Role</th><th>Contact</th><th>Address</th><th>Status</th><th>Last login</th><th></th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      <tr>
+        <td><b>{{ u.full_name }}</b><br><span class="muted">@{{ u.username }}</span></td>
+        <td>{{ role_labels[u.role] }}</td>
+        <td>{{ u.email }}{% if u.phone %}<br><span class="muted">{{ u.phone }}</span>{% endif %}</td>
+        <td>{{ u.address or '—' }}</td>
+        <td>{{ tag(u.status) }}{% if u.must_change_password %}<br><span class="muted">must change password</span>{% endif %}</td>
+        <td class="muted">{{ u.last_login.strftime('%b %d, %Y') if u.last_login else 'Never' }}<br><a href="{{ url_for('sys_logins', user=u.id) }}">Login history</a></td>
+        <td class="actions">
+          {% if u.id != session.user_id %}
+          <form method="post" action="{{ url_for('sys_set_status', user_id=u.id) }}">
+            {{ csrf() }}
+            {% if u.status == 'pending' %}<input type="hidden" name="action" value="approve"><button class="btn btn-small btn-primary">Approve</button>
+            {% elif u.status == 'active' %}<input type="hidden" name="action" value="deactivate"><button class="btn btn-small" data-confirm="Deactivate {{ u.full_name }}? They will be logged out and won't be able to log in.">Deactivate</button>
+            {% else %}<input type="hidden" name="action" value="activate"><button class="btn btn-small">Reactivate</button>{% endif %}
+          </form>
+          <form method="post" action="{{ url_for('sys_reset_password', user_id=u.id) }}">{{ csrf() }}<button class="btn btn-small btn-ghost" data-confirm="Reset the password for {{ u.full_name }}?">Reset password</button></form>
+          {% else %}<span class="muted">You</span>{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<p class="empty muted">No accounts match those filters.</p>{% endif %}
+</section>
+
+<dialog id="new-user">
+  <form method="post" action="{{ url_for('sys_create_user') }}" class="stack">
+    {{ csrf() }}
+    <h2>Add account</h2>
+    <p class="muted">Active right away. They must choose their own password at first login.</p>
+    <label>Role
+      <select name="role" required>{% for key, label in role_labels.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select>
+    </label>
+    <label>Full name<input type="text" name="full_name" required></label>
+    <div class="row2">
+      <label>Username<input type="text" name="username" required></label>
+      <label>Phone<input type="tel" name="phone"></label>
+    </div>
+    <label>Email<input type="email" name="email" required></label>
+    <label>Address (residents)<input type="text" name="address" placeholder="Block 4, Lot 12"></label>
+    <label>Starting password<input type="text" name="password" minlength="10" required></label>
+    <p class="muted hint">At least 10 characters, with letters and numbers.</p>
+    <div class="dialog-actions"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn btn-primary">Create account</button></div>
+  </form>
+</dialog>
+{% endblock %}

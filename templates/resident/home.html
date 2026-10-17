@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Welcome, {{ session.name.split(' ')[0] }}</h1><a class="btn btn-primary" href="{{ url_for('resident_report_new') }}">Report a problem</a></header>
+<section class="stats">
+  <a class="stat" href="{{ url_for('resident_reports') }}"><b>{{ stats.total }}</b><span>Reports filed</span></a>
+  <a class="stat" href="{{ url_for('resident_reports') }}"><b>{{ stats.open }}</b><span>Still open</span></a>
+  <a class="stat {{ 'stat-alert' if stats.confirm }}" href="{{ url_for('resident_reports', view='confirm') }}"><b>{{ stats.confirm }}</b><span>Waiting for your confirmation</span></a>
+</section>
+<div class="two-col">
+  <section class="panel">
+    <div class="panel-head"><h2>Announcements</h2><a href="{{ url_for('resident_announcements') }}">See all</a></div>
+    {% if news %}<ul class="feed">{% for a in news %}<li><span>{% if a.pinned %}<span class="pin-mark">Pinned</span><br>{% endif %}<b>{{ a.title }}</b><br><span class="muted">{{ a.body[:110] }}{{ '…' if a.body|length > 110 }}</span></span></li>{% endfor %}</ul>
+    {% else %}<p class="empty muted">No announcements yet.</p>{% endif %}
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>Upcoming activities</h2><a href="{{ url_for('resident_announcements', kind='activity', when='upcoming') }}">See all</a></div>
+    {% if upcoming %}<ul class="feed">{% for a in upcoming %}<li><span><b>{{ a.title }}</b><br><span class="muted">{{ a.body[:90] }}{{ '…' if a.body|length > 90 }}</span></span><span class="nowrap">{{ a.event_date.strftime('%b %d') }}</span></li>{% endfor %}</ul>
+    {% else %}<p class="empty muted">Nothing scheduled.</p>{% endif %}
+  </section>
+</div>
+<section class="panel mt">
+  <div class="panel-head"><h2>My latest reports</h2><a href="{{ url_for('resident_reports') }}">See all</a></div>
+  {% if reports %}<ul class="feed">{% for r in reports %}<li><span><a href="{{ url_for('resident_report_detail', report_id=r.id) }}"><b>#{{ r.id }} {{ r.category }}</b></a> <span class="muted">{{ r.created_at.strftime('%b %d, %Y') }}</span></span><span>{{ tag(r.status) }}</span></li>{% endfor %}</ul>
+  {% else %}<p class="empty muted">You haven't reported anything yet.</p>{% endif %}
+</section>
+{% endblock %}

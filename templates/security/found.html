@@ -1,0 +1,66 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Lost &amp; found{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Lost &amp; found</h1><button class="btn btn-primary" data-open="found-dialog">Record found item</button></header>
+<div class="tabs">
+  <a class="{{ 'active' if not view }}" href="{{ url_for('security_found') }}">All</a>
+  <a class="{{ 'active' if view == 'claims' }}" href="{{ url_for('security_found', view='claims') }}">Claims to verify</a>
+</div>
+{{ filters(q, 'Search item, place or finder', [('kind','Found and lost',[('found','Found items'),('lost','Lost reports')],kind),('status','Any status',[('open','Open'),('claimed','Claim pending'),('released','Released'),('closed','Closed')],status)]) }}
+<section class="panel">
+  {% if rows %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Item</th><th>Type</th><th>Details</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for r in rows %}
+      <tr>
+        <td><b>{{ r.item_name }}</b><br><span class="muted">{{ r.description }}</span>{% if r.photo %}{{ gallery([{'file': r.photo}]) }}{% endif %}</td>
+        <td>{{ r.kind }}</td>
+        <td class="muted">{{ r.location or 'Place not recorded' }}<br>
+          {% if r.kind == 'found' %}Finder: {{ r.finder_name or 'not recorded' }}{% else %}Reported by {{ r.reporter }}{% endif %}<br>{{ r.created_at.strftime('%b %d, %Y') }}
+          {% if r.status == 'claimed' %}<br><b>Claimed by {{ r.claimant }}</b> ({{ r.claimant_address }})<br>&ldquo;{{ r.claim_details }}&rdquo;{% endif %}
+          {% if r.status == 'released' %}<br>Released to {{ r.released_to }} on {{ r.released_at.strftime('%b %d, %Y') if r.released_at }}<br>ID: {{ r.id_checked }}<br>{{ r.verification_notes }}{% endif %}
+        </td>
+        <td>{{ tag(r.status, 'claim pending' if r.status == 'claimed' else r.status) }}</td>
+        <td class="actions">
+          {% if r.status == 'claimed' %}
+          <details class="inline"><summary>Verify and release</summary>
+            <form method="post" action="{{ url_for('security_release', item_id=r.id) }}" class="stack">
+              {{ csrf() }}
+              <label>ID shown<select name="id_type" required><option value="">Choose</option>{% for t in id_types %}<option>{{ t }}</option>{% endfor %}</select></label>
+              <label>Released to (name on the ID)<input type="text" name="released_to" value="{{ r.claimant }}" required maxlength="120"></label>
+              <label>Verification notes<textarea name="verification_notes" rows="2" required minlength="5" placeholder="What matched: marks, contents, description&hellip;"></textarea></label>
+              <label class="checkline"><input type="checkbox" name="confirm_id" required><span>The ID matches the person in front of me</span></label>
+              <label class="checkline"><input type="checkbox" name="confirm_details" required><span>Their description matches the item</span></label>
+              <div><button class="btn btn-small btn-primary">Release item</button></div>
+            </form>
+          </details>
+          <details class="inline"><summary>Reject claim</summary>
+            <form method="post" action="{{ url_for('security_reject', item_id=r.id) }}" class="stack">
+              {{ csrf() }}<label>Reason<input type="text" name="reason" required minlength="5" maxlength="500"></label>
+              <div><button class="btn btn-small btn-danger">Reject</button></div>
+            </form>
+          </details>
+          {% elif r.kind == 'lost' and r.status == 'open' %}
+          <form method="post" action="{{ url_for('security_close_lost', item_id=r.id) }}">{{ csrf() }}<button class="btn btn-small">Close report</button></form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty muted">Nothing here. Use "Record found item" when someone hands something in at the guardhouse.</p>{% endif %}
+</section>
+<dialog id="found-dialog">
+  <form method="post" action="{{ url_for('security_found_new') }}" enctype="multipart/form-data" class="stack">
+    {{ csrf() }}<h2>Record found item</h2>
+    <label>What is it?<input type="text" name="item_name" maxlength="120" required></label>
+    <label>Description<textarea name="description" rows="3" required minlength="5" placeholder="Color, brand, condition&hellip; Keep some details private to verify the owner."></textarea></label>
+    <div class="row2">
+      <label>Where it was found<input type="text" name="location" maxlength="160"></label>
+      <label>Who handed it in<input type="text" name="finder_name" maxlength="120"></label>
+    </div>
+    <label>Photo (optional)<input type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/gif"></label>
+    <div class="dialog-actions"><button type="button" class="btn" data-close>Cancel</button><button class="btn btn-primary">Save</button></div>
+  </form>
+</dialog>
+{% endblock %}

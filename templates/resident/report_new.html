@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import csrf, tag, filters, pdf_button, gallery, timeline, stars, due with context %}
+{% block title %}Report a problem{% endblock %}
+{% block content %}
+<header class="page-head"><h1>Report a problem</h1></header>
+<section class="panel narrow">
+  <form method="post" enctype="multipart/form-data" class="stack">
+    {{ csrf() }}
+    <label>Category<select name="category" required><option value="">Choose one</option>{% for c in categories %}<option {{ 'selected' if form.get('category') == c }}>{{ c }}</option>{% endfor %}</select></label>
+    <label>Where is it?<input type="text" name="location" value="{{ form.get('location','') }}" maxlength="160" placeholder="Block 4, Lot 12 or the corner of Maple St."></label>
+    <label>What's wrong?<textarea name="description" rows="5" required minlength="10" placeholder="Describe the problem and how long it has been happening.">{{ form.get('description','') }}</textarea></label>
+    <label>Photos (up to 4, optional)<input type="file" name="photos" accept="image/jpeg,image/png,image/webp,image/gif" multiple></label>
+    <p class="muted hint">Clear photos help us fix it faster. JPG, PNG, WEBP or GIF, 8 MB each.</p>
+    <div><button class="btn btn-primary" type="submit">Submit report</button></div>
+  </form>
+</section>
+{% endblock %}

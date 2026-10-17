@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<header class="page-head"><h1>System settings</h1></header>
+<section class="panel narrow">
+  <form method="post" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>System name
+      <input type="text" name="site_name" value="{{ site_name }}" maxlength="60" required>
+    </label>
+    <label class="checkline">
+      <input type="checkbox" name="allow_registration" {{ 'checked' if allow_registration }}>
+      <span>Allow residents to sign up on their own<br><span class="muted">When off, the Create account page shows a "sign-up is closed" message.</span></span>
+    </label>
+    <div><button class="btn btn-primary" type="submit">Save settings</button></div>
+  </form>
+</section>
+{% endblock %}

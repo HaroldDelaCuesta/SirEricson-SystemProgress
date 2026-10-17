@@ -1,0 +1,11 @@
+To: tigayo@gmail.com
+Subject: Subdivision Portal: reset your password
+
+Hello Tig Ayo,
+
+Someone asked to reset the password for this account. If it was you, open this link within 30 minutes:
+
+http://127.0.0.1:5000/reset-password/S-2_6Z8h_ks_s4jmnUMFZDW-rl1HB3GUzUPMOL_oG6A
+
+If it wasn't you, ignore this email. Your password stays the same.
+
